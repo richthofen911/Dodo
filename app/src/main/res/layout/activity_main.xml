@@ -20,6 +20,12 @@
         android:layout_height="wrap_content"
         android:text="say something"/>
 
+    <Button
+        android:id="@+id/btn_wakeOnLan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wake On Lan"/>
+
     <TextView
         android:id="@+id/tv_spokenText"
         android:layout_width="match_parent"

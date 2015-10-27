@@ -4,6 +4,7 @@ import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.speech.RecognitionListener;
 import android.speech.RecognitionService;
@@ -119,6 +120,13 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
                 startSpeechRecognizerService();
             }
         });
+
+        findViewById(R.id.btn_wakeOnLan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ATWakeOnLan().execute();
+            }
+        });
     }
 
     public void searchWeb(String query) { //query is the desired text you want to input, such as "toronto weather"
@@ -188,5 +196,13 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
 
         textToSpeech.shutdown();
 
+    }
+
+    class ATWakeOnLan extends AsyncTask<String, String, String>{
+        @Override
+        protected String doInBackground(String...params){
+            WakeOnLan.sendMagicPacket("192.168.128.255", "54:a0:50:52:16:76");
+            return null;
+        }
     }
 }
