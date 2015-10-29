@@ -1,4 +1,4 @@
-package net.callofdroidy.dodo;
+package net.callofdroidy.jarvis;
 
 /**
  * Created by admin on 28/10/15.

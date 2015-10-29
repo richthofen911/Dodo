@@ -1,36 +1,35 @@
-package net.callofdroidy.dodo;
+package net.callofdroidy.jarvis;
 
-import android.app.SearchManager;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import java.util.List;
-import java.util.Locale;
 
-public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnInitListener{
-    private TextToSpeech textToSpeech;
+import java.util.List;
+
+public class ActivityMain extends AppCompatActivity{
     private static final int SPEECH_REQUEST_CODE = 0;
     private TextView tv_spokenText;
     private static SpeechRecognizer mySpeechRecognizer = null;
 
     private Intent intentSpeechRecognizer;
     private RecognitionListener myRecognitionListener;
+    private ToolBox myToolBox;
+    private VoiceCommandExecutor myVoiceCommandExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textToSpeech = new TextToSpeech(ActivityMain.this, this);
         tv_spokenText = (TextView) findViewById(R.id.tv_spokenText);
+        myToolBox = ToolBox.getInstance();
+        myVoiceCommandExecutor = VoiceCommandExecutor.getInstance(getApplicationContext());
 
         intentSpeechRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentSpeechRecognizer.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
@@ -53,7 +52,7 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onReadyForSpeech(Bundle params){
                 Log.e("listener step", "onReadyForSpeech");
-                textToSpeech.speak("At your service.", TextToSpeech.QUEUE_FLUSH, null, "recognizerReady");
+                myVoiceCommandExecutor.speak("At your service.");
             }
             @Override
             public void onEvent(int eventType, Bundle params){
@@ -74,12 +73,12 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
                 Log.e("listener step", "onResults");
                 List<String> results = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if(results.size() > 0)
-                    executeVoiceCommand(results.get(0));
+                    myVoiceCommandExecutor.exec(results.get(0));
             }
             @Override
             public void onError(int error) {
                 Log.e("listener step", "onError, " + RecognizerErrorTranslator.translateErrorCode(error));
-                executeVoiceCommand("!@#$%" + RecognizerErrorTranslator.translateErrorCode(error));
+                myVoiceCommandExecutor.exec("!@#$%" + RecognizerErrorTranslator.translateErrorCode(error));
             }
         };
 
@@ -87,7 +86,7 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onClick(View v) {
                 Log.e("speak content", tv_spokenText.getText().toString());
-                textToSpeech.speak(tv_spokenText.getText().toString(), TextToSpeech.QUEUE_FLUSH, null, "test");
+                myVoiceCommandExecutor.speak(tv_spokenText.getText().toString());
             }
         });
 
@@ -101,17 +100,9 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
         findViewById(R.id.btn_wakeOnLan).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                wakeOnLan("192.168.128.255", "54:a0:50:52:16:76"); //my fedora in the office
+                myToolBox.wakeOnLan("192.168.128.255", "54:a0:50:52:16:76"); //my fedora in the office
             }
         });
-    }
-
-    public void searchWeb(String query) { //query is the desired text you want to input, such as "toronto weather"
-        Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-        intent.putExtra(SearchManager.QUERY, query);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-        startActivity(intent);
     }
 
     // Create an intent that can start the Speech Recognizer activity
@@ -136,25 +127,6 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
         }
     }
 
-    private void executeVoiceCommand(String cmd){
-        if(cmd.startsWith("!@#$%")){ //onError result
-            textToSpeech.speak("command error, " + cmd.substring(5, cmd.length()), TextToSpeech.QUEUE_FLUSH, null, "handle error");
-        }else {
-            textToSpeech.speak("execute command " + cmd, TextToSpeech.QUEUE_FLUSH, null, "handle error");
-        }
-    }
-
-    // target IP broadcast address and MAC address, used to do "Wake On Lan"
-    private void wakeOnLan(String ipBroadcast, String macAddress){
-        new AsyncTask<String, String, String>(){
-            @Override
-            protected String doInBackground(String...params){
-                WakeOnLan.sendMagicPacket(params[0], params[1]);
-                return null;
-            }
-        }.execute(ipBroadcast, macAddress);
-    }
-
     /**
      * This callback is invoked when the Speech Recognizer returns.
      * This is where you process the intent and extract the speech text from the intent.
@@ -171,22 +143,12 @@ public class ActivityMain extends AppCompatActivity implements TextToSpeech.OnIn
         super.onActivityResult(requestCode, resultCode, data);
     }
 */
-    //implements TextToSpeech.OnInitListener
-    @Override
-    public void onInit(int status){
-        if(status != TextToSpeech.ERROR){
-            textToSpeech.setLanguage(Locale.CANADA);
-            Log.e("text to speech", "ready");
-        }else {
-            Log.e("text to speech", "init failed. Error code: " + status);
-        }
-    }
 
     @Override
     public void onDestroy(){
         super.onDestroy();
         if(mySpeechRecognizer != null)
             mySpeechRecognizer.destroy();
-        textToSpeech.shutdown();
+        myVoiceCommandExecutor.destroy();
     }
 }
