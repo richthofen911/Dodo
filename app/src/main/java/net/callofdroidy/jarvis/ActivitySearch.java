@@ -17,7 +17,8 @@ public class ActivitySearch extends AppCompatActivity {
         setContentView(R.layout.activity_search);
 
         Intent intentGoogleNow = getIntent();
-        if(SearchIntents.ACTION_SEARCH.equals(intentGoogleNow.getAction())){
+
+        if(intentGoogleNow.getAction().equals(SearchIntents.ACTION_SEARCH)){
             String query = intentGoogleNow.getStringExtra(SearchManager.QUERY);
             Log.e("search query", query);
             ((TextView) findViewById(R.id.tv_spokenSearch)).setText(query);

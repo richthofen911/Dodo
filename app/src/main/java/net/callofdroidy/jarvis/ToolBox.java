@@ -1,11 +1,14 @@
 package net.callofdroidy.jarvis;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.HashMap;
 
 /**
  * Created by admin on 29/10/15.
@@ -13,13 +16,19 @@ import java.net.InetAddress;
 public class ToolBox {
     private static ToolBox instance;
 
-    public static synchronized ToolBox getInstance(){
+    private Context cxt;
+
+    public ToolBox(Context context){
+        cxt = context;
+    }
+
+    public static synchronized ToolBox getInstance(Context context){
         if(instance == null)
-            instance = new ToolBox();
+            instance = new ToolBox(context);
         return instance;
     }
 
-    // target IP broadcast address and MAC address, used to do "Wake On Lan"
+    // target IP broadcast address and MAC address, used to do "Wake On Lan", the params should map to an alias
     public void wakeOnLan(String ipBroadcast, String macAddress){
         new AsyncTask<String, String, String>(){
             @Override

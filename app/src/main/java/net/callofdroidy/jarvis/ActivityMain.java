@@ -28,8 +28,8 @@ public class ActivityMain extends AppCompatActivity{
         setContentView(R.layout.activity_main);
 
         tv_spokenText = (TextView) findViewById(R.id.tv_spokenText);
-        myToolBox = ToolBox.getInstance();
-        myVoiceCommandExecutor = VoiceCommandExecutor.getInstance(getApplicationContext());
+        myToolBox = ToolBox.getInstance(getApplicationContext());
+        myVoiceCommandExecutor = VoiceCommandExecutor.getInstance(getApplicationContext(), getApplication());
 
         intentSpeechRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentSpeechRecognizer.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
